@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      body {
+        font-family: Arial;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      #image-container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      .slider {
+        width: 50%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="slidecontainer">
+      <input
+        type="range"
+        min="1"
+        max="100"
+        value="1"
+        class="slider"
+        id="quality"
+      />
+    </div>
+    <div id="image-container"></div>
+    <div id="size"></div>
+
+    <script async type="text/javascript" src="webassembly-jpeg.js"></script>
+    <script>
+      var Module = {
+        onRuntimeInitialized: () => {
+          const BMP_OFFSET = 8;
+
+          let setSrcImage = Module._setSrcImage;
+          let compress = Module._compress;
+          let width, height;
+          let canvas, ctx;
+
+          function loadSrcImage(imgUrl) {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", imgUrl, true);
+            xhr.responseType = "arraybuffer";
+            xhr.onload = function (e) {
+              let srcTa = new Uint8Array(this.response);
+              let srcBuf = Module._malloc(
+                srcTa.length * srcTa.BYTES_PER_ELEMENT
+              );
+              Module.HEAPU8.set(srcTa, srcBuf);
+              let srcImgBuf = setSrcImage(srcBuf, srcTa.length);
+              Module._free(srcBuf);
+              delete srcTa;
+
+              width = Module.HEAP16[srcImgBuf >> 1];
+              height = Module.HEAP16[(srcImgBuf + 2) >> 1];
+
+              canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              document.getElementById("image-container").appendChild(canvas);
+              ctx = canvas.getContext("2d");
+              update(1);
+            };
+            xhr.send();
+          }
+
+          function display(raw) {
+            let bmp = raw + BMP_OFFSET;
+            let buffer = new Uint8Array(width * height * 4);
+            const type = "i8";
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                let dstPos = (y * width + x) * 4;
+                let srcPos = (y * width + x) * 3;
+                buffer[dstPos + 0] = Module.HEAP8[bmp + srcPos + 0];
+                buffer[dstPos + 1] = Module.HEAP8[bmp + srcPos + 1];
+                buffer[dstPos + 2] = Module.HEAP8[bmp + srcPos + 2];
+                buffer[dstPos + 3] = 255;
+              }
+            }
+            blob = new Blob([buffer], { type: "application/octet-binary" });
+            let url = URL.createObjectURL(blob);
+            let idata = ctx.createImageData(width, height);
+            idata.data.set(buffer);
+            ctx.putImageData(idata, 0, 0);
+          }
+
+          function update(quality) {
+            let imgBuf = compress(quality);
+            let size = Module.HEAP32[(imgBuf + 4) >> 2];
+            document.getElementById("size").innerHTML =
+              "Quality:" +
+              quality +
+              " / Weight: " +
+              (size / 1024).toFixed(2) +
+              " Kb";
+            display(imgBuf);
+            Module._free(imgBuf);
+          }
+
+          let slider = document.getElementById("quality");
+          slider.oninput = function () {
+            update(this.value);
+          };
+
+          loadSrcImage("libjpeg/testimg.jpg");
+        },
+      };
+    </script>
+  </body>
+</html>
