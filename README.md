@@ -41,3 +41,6 @@ Start Angular app:
 ```sh
 npm start
 ```
+
+
+Based on https://github.com/AntoineViau/webassembly-jpeg
