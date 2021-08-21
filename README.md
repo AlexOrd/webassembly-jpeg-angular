@@ -35,7 +35,7 @@ emcc -o webassembly-jpeg.js jpeg-read.c jpeg-write.c webassembly-jpeg.c libjpeg/
       -O2
       -s WASM=1
       -s NO_EXIT_RUNTIME=1
-      -s 'EXPORTED_RUNTIME_METHODS=["writeArrayToMemory","getValue", "cwrap", "_malloc"]'
+      -s 'EXPORTED_RUNTIME_METHODS=["writeArrayToMemory","getValue", "cwrap", "setSrcImage", "compress", "_malloc", "_free"]'
 ```
 Start Angular app:
 ```sh

@@ -29,21 +29,21 @@ export class AppComponent implements OnInit {
         this.showCompressedImagePromise(
           this.secondImg,
           '/assets/testimg2.jpg',
-          30
+          5
         )
       )
       .then((): any =>
         this.showCompressedImagePromise(
           this.thirdImg,
           '/assets/testimg2.jpg',
-          50
+          20
         )
       )
       .then((): any =>
         this.showCompressedImagePromise(
           this.fourthImg,
           '/assets/testimg2.jpg',
-          5
+          50
         )
       );
   }
@@ -64,9 +64,9 @@ export class AppComponent implements OnInit {
               data.image.width,
               data.image.height
             );
-              // !!!
+            // 5. Show bmpArray in the Canvas
             // We need these two calls to trigger the canvas update
-            canvasImg.data.set(data.displayZone.bmpArray);
+            canvasImg.data.set(data.image.bmpArray);
             imgCtx.putImageData(canvasImg, 0, 0);
 
             // we can save as we need or send
