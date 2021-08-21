@@ -24,7 +24,7 @@ export class WasmService {
     this.compress = Module.cwrap('compress', 'number', ['number']);
   }
 
-  loadAndCompressImgPromise(imgUrl: string, qualityValue: number = 5) {
+  loadAndCompressImgPromise(imgUrl: string, qualityValue: number) {
     return fetch(imgUrl)
       .then((response) => response.arrayBuffer())
       .then((rawJpeg) => this.compressImg(qualityValue, rawJpeg));
@@ -33,7 +33,7 @@ export class WasmService {
   compressImg(quality, rawJpeg) {
     const displayZone: any = {
       ctx: undefined, // canvas context
-      bmpArray: new Uint8Array(800 * 600 * 4).fill(0xff), // bitmap data
+      bmpArray: new Uint8Array(700 * 525 * 4).fill(0xff), // bitmap data
       imageData: undefined, // internal canvas bitmap data
     };
     // The following object maps the C Image structure
@@ -51,6 +51,7 @@ export class WasmService {
 
     // We allocate a memory block inside our WebAssembly module using the libc malloc function
     // given by the emscripten glue code.
+    // !!!!! malloc
     let srcBuf = Module._malloc(
       rawJpegAsTypedArray.length * rawJpegAsTypedArray.BYTES_PER_ELEMENT
     );
@@ -86,6 +87,8 @@ export class WasmService {
     image.compressedSize = Module.getValue(pImage + 8, 'i32');
     image.data = Module.getValue(pImage + 12, 'i32');
 
+    // split 3 [abstract methods]
+
     // Unfortunately, bitmap pixels are RGB and canvas expects RGBA.
     // So we have to convert pixel by pixel, and it is slow !
     // The canvas Alpha is set in createDisplayZone() with fill(0xff)
@@ -109,3 +112,9 @@ export class WasmService {
     };
   }
 }
+
+// 1. Load img
+// 2. Put img in Memory ArrayBuffer
+// 3. Compress img using C lib
+// 4. Move jpeg bitmap from WASM to JS Array Buffer
+// 5. Show jpeg img in Canvas

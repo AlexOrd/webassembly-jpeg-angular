@@ -6,7 +6,7 @@ import { WasmService } from './wasm.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  imgUrl = 'assets/testimg.jpg';
+  imgUrl = 'assets/testimg2.jpg';
 
   @ViewChild('firstImg', { static: true })
   firstImg!: ElementRef<HTMLCanvasElement>;
@@ -24,25 +24,25 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.wasmService.initWasm();
-    this.showCompressedImagePromise(this.firstImg, '/assets/testimg.jpg', 100)
+    this.showCompressedImagePromise(this.firstImg, '/assets/testimg2.jpg', 100)
       .then((): any =>
         this.showCompressedImagePromise(
           this.secondImg,
-          '/assets/testimg.jpg',
-          60
+          '/assets/testimg2.jpg',
+          30
         )
       )
       .then((): any =>
         this.showCompressedImagePromise(
           this.thirdImg,
-          '/assets/testimg.jpg',
-          20
+          '/assets/testimg2.jpg',
+          50
         )
       )
       .then((): any =>
         this.showCompressedImagePromise(
           this.fourthImg,
-          '/assets/testimg.jpg',
+          '/assets/testimg2.jpg',
           5
         )
       );
@@ -64,10 +64,12 @@ export class AppComponent implements OnInit {
               data.image.width,
               data.image.height
             );
-
+              // !!!
             // We need these two calls to trigger the canvas update
             canvasImg.data.set(data.displayZone.bmpArray);
             imgCtx.putImageData(canvasImg, 0, 0);
+
+            // we can save as we need or send
 
             imgCtx.font = 'bold 10pt Courier New';
             imgCtx.fillStyle = 'white';
